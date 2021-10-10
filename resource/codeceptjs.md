@@ -39,6 +39,8 @@ CodeceptJS 通过执行命令到help程序。根据启用的help程序，测试�
 
 例如，您不能在 WebDriver 或 Protractor 中设置请求标头，但可以在 Puppeteer 或 Nightmare 中设置。
 
+**选择一个help程序，因为它定义了测试的执行方式。**如果需求发生变化，很容易迁移到另一个。
+
 ### 四、安装
 
 1.通过安装程序创建一个新项目create-codeceptjs （https://github.com/codeceptjs/create-codeceptjs）
@@ -161,6 +163,8 @@ npx codeceptjs run --grep "slow"
 ```
 npx codeceptjs run-workers 3
 ```
+
+测试按场景拆分，而不是按文件拆分。结果汇总并显示在主流程中。
 
 ### 六、配置
 
