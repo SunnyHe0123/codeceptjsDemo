@@ -1,29 +1,34 @@
-## **tests**Codeceptjs
+## Codeceptjs
 
 ### 一、简介
 
-CodeceptJS 是一个现代的端到端测试框架，具有特殊的 BDD（Behavior Driven Development， 行为驱动开发） 风格的语法。测试被编写为用户在站点上的操作的线性场景。
+**CodeceptJS**是开源 MIT 许可的测试框架。适用于您最喜欢的前端框架React, Vue, Angular
 
 ### 二、特点
 
-1、**从用户角度编写**
+1、场景驱动: 从用户的角度编写验收测试。使测试可读且易于遵循。
 
-codeceptjs提供的API具有[declarative testing](https://link.jianshu.com?t=https://support.saucelabs.com/hc/en-us/articles/115009283587-Imperative-v-Declarative-Testing)的特点，从用户行为的角度抽象出了许多与浏览器的交互动作，测试代码非常易读易懂。codeceptjs提供的API由于其易读性也可以当成DSL来使用，这些DSL隐藏了后端webdriver服务的复杂性，可以让使用者更加专注到测试场景的编写中
+2、[驱动无关性](https://codecept.io/basics/#architecture): 执行测试用例在 **Playwright, WebDriver, Puppeteer, TestCafe, Protractor, Appium**时，编写的code是相同的。
 
-2、**所有的交互动作来自于对象`I`**
+3、[交互 Debug](https://codecept.io/basics/#debug):  在测试运行时进行调试。在任何点暂停测试并尝试执行定位器命令。
 
-对象`I`的方法都被描述为用户访问网站可能产生的行为，易读易写易维护。
+4、[丰富的定位器](https://codecept.io/locators): 使用语义定位器、CSS、XPath等查找页面上的元素
 
-3、**对多个后端API兼容**
+5、[页面对象（PageObjects）](https://codecept.io/pageobjects/):  PageObjects对于编写稳定和可重用的代码至关重要!
 
-codeceptjs支持多个webdriver实现 i.e. webdriverio, protractor and phantomjs, 我们可以很简单在他们之间切换。这些不同的webdriver实现在codeceptjs里面叫做*Helper*，正是下面这些Helper给对象`I`提供了actions
+6、[Web和移动端测试:](https://codecept.io/mobile/) 使用Appium或Detox测试原生手机应用。
 
-- [Webdriverio](https://link.jianshu.com/?t=http://webdriver.io/)
-- [Protractor](https://link.jianshu.com/?t=http://www.protractortest.org/)
-- [Phantomjs](https://link.jianshu.com/?t=http://phantomjs.org/)
-- [Nigntmare](https://link.jianshu.com/?t=http://www.nightmarejs.org/)
-- [Appium](https://link.jianshu.com/?t=http://appium.io/)
-- [Selenium Webdriver](https://link.jianshu.com/?t=https://www.npmjs.com/package/selenium-webdriver)
+7、Cucumber-like BDD: 像在CucumberJS中那样自动化业务场景???????
+
+8、[美观的测试报告](https://codecept.io/plugins/#allure): 集成Allure reporter
+
+9、[数据管理](https://codecept.io/data/): 创建假数据并通过REST API清理它
+
+10、[并行测试](https://codecept.io/advanced/#parallel-execution): 测试被分割成块并在多个进程中执行
+
+11、[Reduced Flackiness](https://codecept.io/basics/#retries): 自动重试失败的步骤
+
+12、Multi-Session测试: 使用几个浏览器窗口运行一个测试
 
 ### 三、架构
 
@@ -31,7 +36,9 @@ CodeceptJS 通过执行命令到help程序。根据启用的help程序，测试�
 
 下面是 CodeceptJS 架构图：
 
-![architecture](C:\Users\Administrator\Desktop\codeceptjs\architecture.svg)
+![architecture](./architecture.svg)
+
+![image4](F:\Java\repositories\codeceptjsDemo\resource\image4.png)
 
 所有help共享相同的 API，因此很容易将测试从一个后端迁移到另一个后端。
 
@@ -67,9 +74,9 @@ npx codeceptjs init
 
 
 
-![image1](C:\Users\Administrator\Desktop\codeceptjs\image1.png)
+![image1](./\image1.png)
 
-![image2](C:\Users\Administrator\Desktop\codeceptjs\image2.png)
+![image2](./image2.png)
 
 2.标准安装
 
@@ -97,20 +104,29 @@ npx codeceptjs init
 npm run codeceptjs
 ```
 
-![image3](C:\Users\Administrator\Desktop\codeceptjs\image3.png)
+![image3](./image3.png)
 
-### 五、编写测试
+### 五、入门
 
-1）hello world.
+CodeceptJS 是一个现代的端到端测试框架，具有特殊的 BDD（**行为驱动开发**） 风格的语法。测试被编写为用户在站点上的操作的线性场景。
+
+1）编写测试
 
 ```js
 Feature('CodeceptJS demo');
 
 Scenario('check Welcome page on site', ({ I }) => {
+  //当 URL 不以协议（http:// 或 https://）开头时，
+  //它被认为是一个相对 URL，并将附加到最初在配置中设置的 URL
+  I.amOnPage('https://google.com');
   I.amOnPage('/');
   I.see('Welcome');
 });
 ```
+
+测试预计将使用**ECMAScript 7**编写。
+
+每个测试都在一个`Scenario`函数中描述，`I`对象传递给它。该`I`对象是一个**actor**，一个测试用户的抽象。该`I`是目前启用了代理对象**助手（helper）**
 
 2.运行测试
 
