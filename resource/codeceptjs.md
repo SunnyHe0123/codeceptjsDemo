@@ -48,6 +48,14 @@ CodeceptJS 通过执行命令到help程序。根据启用的help程序，测试�
 
 **选择一个help程序，因为它定义了测试的执行方式。**如果需求发生变化，很容易迁移到另一个。
 
+- [Playwright](https://codecept.io/playwright/)
+- [WebDriver](https://codecept.io/webdriver)
+
+* [Puppeteer](https://codecept.io/puppeteer/)
+* [Protactor](https://codecept.io/angular/)
+* [Nightmare](https://codecept.io/nightmare/)
+* [TestCafe](https://codecept.io/testcafe/)
+
 ### 四、安装
 
 1.通过安装程序创建一个新项目create-codeceptjs （https://github.com/codeceptjs/create-codeceptjs）
@@ -152,7 +160,7 @@ npx codeceptjs run --debug
 npx codeceptjs run --verbose
 ```
 
-4.筛选
+4.Filter
 
 如果您提供此类文件的相对路径，则可以执行单个测试文件
 
@@ -288,6 +296,41 @@ CodeceptJS 允许在保持浏览器打开的同时即时编写和调试测试。
 I.amOnPage('/');
 pause();
 ```
+
+
+
+#### 暂停
+
+可以通过`pause()`调用在测试的任何地方暂停测试执行。还可以将变量传递给`pause({data: 'hi', func: () => console.log('hello')})`可在交互式 shell 中访问的变量。
+
+这将启动交互式控制台，您可以在其中调用`I`对象的任何操作。
+
+```shell
+Interactive shell started
+ Press ENTER to resume test
+ Use JavaScript syntax to try steps in action
+ - Press ENTER to run the next step
+ - Press TAB twice to see all available commands
+ - Type exit + Enter to exit the interactive shell
+ - Prefix => to run js commands
+ I.
+```
+
+输入不同的动作来尝试它们，将成功的动作复制并粘贴到测试文件中。
+
+按`ENTER`恢复测试执行。
+
+要**逐步调试测试，请**按 Enter，将执行下一步并再次显示交互式 shell。
+
+要查看所有可用命令，请按两次 TAB 以查看`I`对象中包含的所有操作的列表。
+
+```shell
+I.=> func()
+I.=> func2()
+I.=> 2 + 5
+```
+
+
 
 失败时暂停
 
