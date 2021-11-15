@@ -681,3 +681,105 @@ npx codecept-ui --app
 npx codecept-ui
 ```
 
+## Testing with Puppeteer
+
+在所有Selenium替代品中，最有趣的新兴工具是围绕Chrome [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/)协议开发的工具。最突出的一个是 [Puppeteer](https://github.com/GoogleChrome/puppeteer)。它直接在谷歌Chrome上运行，不需要额外的工具，如ChromeDriver。因此，使用Puppeteer设置测试只能使用npm install启动。如果您想更快更简单地设置测试，您可以选择Puppeteer。
+
+CodeceptJS 使用 Puppeteer 来改善端到端的测试体验。无需学习新工具的语法，CodeceptJS 中的所有驱动程序共享相同的 API。
+
+看一个示例测试：
+
+```js
+I.amOnPage('https://github.com');
+I.click('Sign in', '//html/body/div[1]/header');
+I.see('Sign in to GitHub', 'h1');
+I.fillField('Username or email address', 'something@totest.com');
+I.fillField('Password', '123456');
+I.click('Sign in');
+I.see('Incorrect username or password.', '.flash-error');
+```
+
+### 一、设置
+
+要启动，你需要安装了Puppeteer packages的CodeceptJS
+
+```shell
+npm install codeceptjs puppeteer --save
+```
+
+或查看[替代安装选项](http://codecept.io/installation/)
+
+如果您已经有 CodeceptJS 项目，只需安装`puppeteer`包并在配置中启用它的助手即可。
+
+并初始化了一个基本项目
+
+```shell
+npx codeceptjs init
+```
+
+您将被要求使用 Helper，您应该选择 Puppeteer 并提供您正在测试的网站的 url
+
+Puppeteer 也可以与 Firefox 一起使用。[了解如何设置](https://codecept.io/helpers/Puppeteer-firefox)
+
+### 二、配置
+
+确保`Puppeteer`在`codecept.conf.js`配置中启用了助手：
+
+```js
+{ // ..
+  helpers: {
+    Puppeteer: {
+      url: "http://localhost",
+      show: true
+    }
+  }
+  // ..
+}
+```
+
+`show`如果您想在无头模式下运行测试，请关闭该选项。
+
+Puppeteer 使用不同的策略来检测页面是否已加载。在配置中使用`waitForNavigation`选项：
+
+默认情况下，它被设置为`domcontentloaded`等待`DOMContentLoaded`事件被触发。但是，对于单页应用程序，将这个值设置为`networkidle0`等待所有网络连接完成会更有用。
+
+```js
+helpers: {
+    Puppeteer: {
+      url: "http://localhost",
+      show: true,
+      waitForNavigation: "networkidle0"
+    }
+  }
+```
+
+当测试运行速度比应用程序快时，建议增加`waitForAction`配置值。默认情况下，在执行每个用户操作后，它会等待一小段时间（100 毫秒
+
+> 更多配置选项列于[辅助参考](http://codecept.io/helpers/Puppeteer/).
+
+### 三、编写以及运行测试
+
+测试包括用户在页面上采取的操作的场景。使用最广泛的有：
+
+- `amOnPage` - 打开网页（接受相对或绝对网址）
+- `click` - 找到按钮或链接并单击它
+- `fillField` - 在字段内输入文本
+- `selectOption`, `checkOption`- 与表单交互
+- `wait*` 等待页面的某些部分完全呈现（对于测试 SPA 很重要）
+- `grab*` 从页面源获取值
+- `see`, `dontSee`- 检查页面上的文本
+- `seeElement`, `dontSeeElement`- 检查页面上的元素
+
+>ℹ 所有操作都列在[Puppeteer 助手参考](http://codecept.io/helpers/Puppeteer/).*
+
+所有与元素交互的动作都**支持 CSS 和 XPath 定位器**。像`click`或`fillField`通过在页面上按名称或值定位元素的操作：
+
+```js
+// search for link or button
+I.click('Login');
+// locate field by its label
+I.fillField('Name', 'Miles');
+// we can use input name
+I.fillField('user[email]','miles@davis.com');
+```
+
