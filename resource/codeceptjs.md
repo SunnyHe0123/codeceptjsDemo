@@ -783,3 +783,222 @@ I.fillField('Name', 'Miles');
 I.fillField('user[email]','miles@davis.com');
 ```
 
+您还可以使用严格定位器指定确切的定位器类型：
+
+```js
+I.click({css: 'button.red'});
+I.fillField({name: 'user[email]'},'miles@davis.com');
+I.seeElement({xpath: '//body/header'});
+```
+
+### 四、Interactive Pause
+
+如果您使用 [交互式暂停](https://codecept.io/basics#debug)，就很容易开始编写测试。只需打开一个网页并暂停执行。
+
+```js
+Feature('Sample Test');
+
+Scenario('open my website', ({ I }) => {
+  I.amOnPage('http://todomvc.com/examples/react/');
+  pause();
+});
+```
+
+这足以运行一个测试，打开一个浏览器，并思考接下来要做什么来编写一个测试用例。
+
+当您使用`codeceptjs run`命令执行此类测试时，您可能会看到浏览器已启动
+
+```shell
+npx codeceptjs run --steps
+```
+
+打开页面后，浏览器的完全控制权被赋予终端。键入不同的命令，例如`click`, `see`,`fillField`来编写测试。成功的命令将保存到`./output/cli-history`文件中并可复制到测试中。
+
+```js
+Feature('ToDo');
+
+Scenario('create todo item', ({ I }) => {
+  I.amOnPage('http://todomvc.com/examples/react/');
+  I.dontSeeElement('.todo-count');
+  I.fillField('What needs to be done?', 'Write a guide');
+  I.pressKey('Enter');
+  I.see('Write a guide', '.todo-list');
+  I.see('1 item left', '.todo-count');
+});
+```
+
+## Organizing Test
+
+### 一、自定义Helper
+
+Helper 是 CodeceptJS 的核心概念。Helper 是各种库之上的包装器，为它们提供统一的接口。当`I`对象用于测试时，它将其功能的执行委托给当前启用的帮助程序类。
+
+使用 Helpers 在不污染测试场景的情况下将低级 API 引入您的测试。Helpers 也可用于在不同项目中共享功能并作为 npm 包安装
+
+#### 1.发展
+
+可以通过运行生成器命令来创建助手：
+
+```shell
+npx codeceptjs gh
+# or 
+# npx codeceptjs generate:helper
+```
+
+此命令生成一个基本帮助程序，将其附加到`helpers`配置文件的部分：
+
+```js
+helpers: {
+  WebDriver: {  },
+  MyHelper: {
+    require: './path/to/module'
+  }
+}
+```
+
+Helper是从[相应的抽象类](https://github.com/codeceptjs/helper)继承的[类 ](https://github.com/codeceptjs/helper). 创建的helper文件应如下所示：
+
+```js
+const Helper = require('@codeceptjs/helper');
+
+class MyHelper extends Helper {
+
+  // before/after hooks
+  _before() {
+    // remove if not used
+  }
+
+  _after() {
+    // remove if not used
+  }
+
+  // add custom methods here
+  // If you need to access other helpers
+  // use: this.helpers['helperName']
+
+}
+
+module.exports = MyHelper;
+```
+
+
+
+当在 config 中启用helper时，helper类的所有方法都可以在**`I`object** 中使用。例如，如果我们向helper类添加一个新方法：
+
+```js
+const Helper = require('@codeceptjs/helper');
+
+class MyHelper extends Helper {
+
+  doAwesomeThings() {
+    console.log('Hello from MyHelpr');
+  }
+
+}
+```
+
+我们可以从内部调用一个新方法`I`：
+
+```js
+I.doAwesomeThings()
+```
+
+>以"_" 开头的方法被认为是特殊的，并且在`I object`中不可用。
+>
+>**请注意**，helper类中不能使用`I object`。由于`I`对象将其调用委托给helper类，因此您不能对其进行循环依赖。您可以通过使用helper的`helpers`属性来访问其他助手，而不是在hepler内部调用 `I`。这允许您按名称访问任何其他已启用的助手.
+
+例如，要使用 Playwright helper执行单击，请执行以下操作：
+
+```js
+doAwesomeThingsWithPlaywright() {
+  const { Playwright } = this.helpers;
+  Playwright.click('Awesome');    
+}
+```
+
+自定义助手完成后，您可以通过运行以下命令更新 CodeceptJS 类型定义：
+
+```shell
+npx codeceptjs def .
+```
+
+如果您的测试是用 TypeScript 编写的，您的 IDE 将能够利用自动完成等功能
+
+#### 2.访问元素
+
+WebDriver、Puppeteer、Playwright 和 Protractor 驱动程序为 Web 元素提供 API。但是，CodeceptJS在设计上不会将它们暴露给测试，从而使测试以行动为重点。如果需要访问网页元素，建议在自定义helper中实现网页元素的操作。
+
+要访问元素，请连接到相应的helper并使用`_locate`函数通过 CSS 或 XPath 匹配 Web 元素，就像您通常所做的那样
+
+#### 3.访问Puppeteer中的元素
+
+```js
+// inside a custom helper
+async clickOnEveryElement(locator) {
+  const { Puppeteer } = this.helpers;
+  const els = await Puppeteer._locate(locator);
+
+  for (let el of els) {
+    await el.click();
+  }
+}
+```
+
+#### 4.配置
+
+在codecept.json或者codecept.conf.js中应该启用helper。
+
+```js
+helpers: {
+  // here goes standard helpers:
+  // WebDriver, Protractor, Nightmare, etc...
+  // and their configuration
+  MyHelper: {
+    require: "./my_helper.js", // path to module
+    defaultHost: "http://mysite.com" // custom config param
+  }
+
+}
+```
+
+配置值将存储在`this.config`. 要获得`defaultHost`值，您可以使用
+
+```js
+this.config.defaultHost
+```
+
+在使用hepler的地方。您还可以在构造函数中重新定义配置选项
+
+```js
+constructor(config) {
+  config.defaultHost += '/api';
+  console.log(config.defaultHost); // http://mysite.com/api
+  super(config);
+}
+```
+
+#### 5.钩子函数
+
+帮助程序可能包含多个可用于处理测试事件的钩子。为它们实现相应的方法。
+
+* `_init` - 在所有测试之前
+* `_finishTest` - 完成所有测试
+* `_before` - 测试前
+* `_after` - 测试后
+* `_beforeStep` - 在每一步之前
+
+- `_afterStep` - 每一步之后
+- `_beforeSuite` - 每个套件前
+
+* `_afterSuite` - 每个套件后
+* `_passed` - 测试通过后
+* `_failed` - 测试失败后
+
+每个实现的方法都应该返回一个值，因为它们也将被添加到全局 promise chain中
+
+#### 6.有条件的Retries
+
+可以执行全局条件重试来处理不可预见的错误。丢失的连接和网络问题是很好的候选者，只要它们出现就可以重试。
+
+这可以在使用全局[承诺记录器](https://codecept.io/hooks/#api)的助手中完成：
+
