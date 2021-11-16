@@ -1,7 +1,3 @@
-
-
-
-
 ## Codeceptjs
 
 ### 一、简介
@@ -1000,5 +996,453 @@ constructor(config) {
 
 可以执行全局条件重试来处理不可预见的错误。丢失的连接和网络问题是很好的候选者，只要它们出现就可以重试。
 
-这可以在使用全局[承诺记录器](https://codecept.io/hooks/#api)的助手中完成：
+### 二、使用Typescript
+
+https://codecept.io/typescript/#getting-started
+
+### 三、定位器（Locators）
+
+https://codecept.io/locators/#locators
+
+CodeceptJS 提供了灵活的元素定位策略：
+
+- [CSS 和 XPath 定位器](https://codecept.io/locators/#css-and-xpath)
+- [语义定位器](https://codecept.io/locators/#semantic-locators)：按链接文本、按按钮文本、按字段名称等。
+- [定位器生成器](https://codecept.io/locators/#locator-builder)
+- [ID 定位器](https://codecept.io/locators/#id-locators)：通过 CSS id 或通过可访问性 id
+- [自定义定位器策略](https://codecept.io/locators/#custom-locators)：通过数据属性或您喜欢的任何方式。
+- [Shadow DOM](https://codecept.io/shadow) : 访问 shadow dom 元素
+- [React](https://codecept.io/react)：通过组件名称和道具访问 React 元素
+
+### 四、页面对象（Page Objects）
+
+Web 应用程序的 UI 具有可以在不同测试之间共享的交互区域。为避免代码重复，您可以将常用定位器和方法放在一处
+
+#### 1.依赖注入
+
+这里描述的所有对象都是通过依赖注入注入的，与 AngularJS 的方式类似。如果您希望将对象按其名称注入场景中，您可以将其添加到配置中：
+
+```js
+include: {
+    I: "./custom_steps.js",
+    Smth: "./pages/Smth.js",
+    loginPage: "./pages/Login.js",
+    signinFragment: "./fragments/Signin.js"
+  }
+```
+
+现在可以通过配置中指定的名称检索这些对象。
+
+所需的对象可以通过测试中的参数或通过全局`inject()`调用获得。
+
+```js
+// globally inject objects by name
+const { I, myPage, mySteps } = inject();
+
+// inject objects for a test by name
+Scenario('sample test', ({ I, myPage, mySteps }) => {
+  // ...
+});
+```
+
+#### 2.Actor
+
+在初始化过程中，要求您创建一个自定义步骤文件。如果您接受此选项，您现在可以使用该`custom_steps.js`文件扩展`I`. 
+
+查看如何将`login`方法添加到`I`：
+
+```js
+module.exports = function() {
+  return actor({
+
+    login: function(email, password) {
+      this.fillField('Email', email);
+      this.fillField('Password', password);
+      this.click('Submit');
+    }
+  });
+}
+```
+
+>ℹ代替I，你应该在当前的环境中使用this
+
+#### 3. PageObject
+
+如果应用程序有不同的页面（登录、管理等），您应该使用页面对象。CodeceptJS 可以使用以下命令为其生成模板：
+
+```shell
+npx codeceptjs gpo
+```
+
+这将为页面对象创建一个示例模板并将其包含在`codecept.json`配置文件中
+
+```js
+const { I, otherPage } = inject();
+
+module.exports = {
+
+  // insert your locators and methods here
+}
+```
+
+如您所见，`I`对象在作用域内是可用的，所以您可以像在测试中那样使用它。登录页面的一般页面对象看起来像这样:
+
+```js
+// enable I and another page object
+const { I, registerPage } = inject();
+
+module.exports = {
+
+  // setting locators
+  fields: {
+    email: '#user_basic_email',
+    password: '#user_basic_password'
+  },
+  submitButton: {css: '#new_user_basic input[type=submit]'},
+
+  // introducing methods
+  sendForm(email, password) {
+    I.fillField(this.fields.email, email);
+    I.fillField(this.fields.password, password);
+    I.click(this.submitButton);
+  },
+
+  register(email, password) {
+    // use another page object inside current one
+    registerPage.registerUser({ email, password });
+  }
+}
+```
+
+您可以按名称（在 `codecept.json`中定义）将此页面对象包含在测试中。如果您创建了一个`loginPage`对象，则应将其添加到要包含在测试中的参数列表中：
+
+```js
+Scenario('login', ({ I, loginPage }) => {
+  loginPage.sendForm('john@doe.com','123456');
+  I.see('Hello, John');
+});
+```
+
+此外，您可以在页面对象内使用`async/await`：
+
+```js
+const { I } = inject();
+
+module.exports = {
+
+  // setting locators
+  container: "//div[@class = 'numbers']",
+  mainItem: {
+    number: ".//div[contains(@class, 'numbers__main-number')]",
+    title: ".//div[contains(@class, 'numbers__main-title-block')]"
+  },
+
+  // introducing methods
+  async openMainArticle() {
+    I.waitForVisible(this.container)
+    let _this = this
+    let title;
+    await within(this.container, async () => {
+      title = await I.grabTextFrom(_this.mainItem.number);
+      let subtitle = await I.grabTextFrom(_this.mainItem.title);
+      title = title + " " + subtitle.charAt(0).toLowerCase() + subtitle.slice(1);
+      await I.click(_this.mainItem.title)
+    })
+    return title;
+  }
+}
+```
+
+并在您的测试中使用它们：
+
+```js
+Scenario('login2', async ({ I, loginPage, basePage }) => {
+  let title = await mainPage.openMainArticle()
+  basePage.pageShouldBeOpened(title)
+});
+```
+
+页面对象可以是函数、数组或类。当声明为类时，您可以轻松地在其他页面对象中扩展它们。
+
+以下是将页面对象声明为类的示例：
+
+```js
+const { expect } = require('chai');
+const { I } = inject();
+
+class AttachFile {
+  constructor() {
+    this.inputFileField = 'input[name=fileUpload]';
+    this.fileSize = '.file-size';
+    this.fileName = '.file-name'
+  }
+
+  async attachFileFrom(path) {
+    await I.waitForVisible(this.inputFileField)
+    await I.attachFile(this.inputFileField, path)
+  }
+
+  async hasFileSize(fileSizeText) {
+    await I.waitForElement(this.fileSize)
+    const size = await I.grabTextFrom(this.fileSize)
+    expect(size).toEqual(fileSizeText)
+  }
+
+  async hasFileSizeInPosition(fileNameText, position) {
+    await I.waitNumberOfVisibleElements(this.fileName, position)
+    const text = await I.grabTextFrom(this.fileName)
+    expect(text[position - 1]).toEqual(fileNameText)
+  }
+}
+
+// For inheritance
+module.exports = new AttachFile();
+module.exports.AttachFile = AttachFile;
+```
+
+#### 4.Page Fragments(页面片段)
+
+类似地，CodeceptJS允许你通过运行带有——type(或-t)选项的go命令来生成PageFragments和任何其他抽象:
+
+```shell
+npx codeceptjs go --type fragment
+```
+
+
+
+页面片段表示页面的独立部分，如模态框、组件、小部件.从技术上讲，它们与PageObject相同，但在概念上有一点不同.
+
+例如，建议Page Fragment包含组件的根定位器,可以在`within`块内使用Page Fragments的方法来将范围缩小到根定位器
+
+```js
+const { I } = inject();
+// fragments/modal.js
+module.exports = {
+
+  root: '#modal',
+
+  // we are clicking "Accept: inside a popup window
+  accept() {
+    within(this.root, function() {
+      I.click('Accept');
+    });
+  }
+}
+```
+
+要在测试场景中使用页面片段，只需将其注入到您的场景中:
+
+```js
+Scenario('failed_login', async ({ I, loginPage, modal }) => {
+  loginPage.sendForm('john@doe.com','wrong password');
+  I.waitForVisible(modal.root);
+  within(modal.root, function () {
+    I.see('Login failed');
+  })
+});
+```
+
+要在Page Object中使用Page Fragment，可以使用inject方法通过它的名称来获取它。
+
+```js
+const { I, modal } = inject();
+
+module.exports = {
+  doStuff() {
+    ...
+    modal.accept();
+    ...
+  }
+}
+```
+
+#### 5.StepObjects(步骤对象)
+
+StepObjects 表示涉及使用多个网页的复杂操作。例如，在后端创建用户，更改权限等。 StepObject 可以类似于 PageObjects 或 PageFragments 创建：
+
+```shell
+npx codeceptjs go --type step
+```
+
+从技术上讲，它们与 PageObjects 相同。StepObjects 可以注入 PageObjects 并使用多个 PO 来制作复杂的场景：
+
+```js
+const { I, userPage, permissionPage } = inject();
+
+module.exports = {
+
+  createUser(name) {
+    // action composed from actions of page objects
+    userPage.open();
+    userPage.create(name);
+    permissionPage.activate(name);
+  }
+
+};
+```
+
+#### 6.动态注入
+
+您可以通过`injectDependencies`在场景中调用函数来为每个测试注入对象：
+
+```js
+Scenario('search @grop', ({ I, Data }) => {
+  I.fillField('Username', Data.username);
+  I.pressKey('Enter');
+}).injectDependencies({ Data: require('./data.js') });
+```
+
+在测试中，这里将`./data.js` module分配赋值给了`Data`参数
+
+### 五、数据管理----下次再说
+
+### 六、**最佳实践**
+
+#### 1.专注于可读性
+
+在 CodeceptJS 中，我们鼓励用户在编写测试时遵循页面上的语义元素。而不是 CSS/XPath 定位器尝试坚持页面上的可见关键字。
+
+看看下一个例子：
+
+```js
+// it's fine but...
+I.click({css: 'nav.user .user-login'});
+// can be better
+I.click('Login', 'nav.user');
+```
+
+如果我们用按钮标题替换原始 CSS 选择器，我们可以提高此类测试的可读性。即使按钮上的文本发生变化，更新它也容易得多。
+
+当难以将文本与元素匹配时，我们建议使用[locator builder](https://codecept.io/locators#locator-builder)。它允许通过流畅的 API 构建复杂的定位器。因此，如果您想单击一个不是按钮或链接的元素并使用其文本，您可以使用它`locate()`来构建一个可读的定位器：
+
+```js
+// clicks element <span class="button">Click me</span>
+I.click(locate('.button').withText('Click me'));
+```
+
+#### 2.捷径
+
+为了编写更简单有效的测试，我们鼓励使用捷径。使测试专注于一项功能，并尝试简化与测试不直接相关的所有内容。
+
+- 如果测试需要数据，请尝试通过 API 创建该数据。请参阅[数据管理](https://codecept.io/data)章节中的操作方法。
+- 如果需要用户登录，请使用[autoLogin 插件](https://codecept.io/plugins#autoLogin)而不是将登录步骤放在测试中。
+- 将长时间的测试分成几个。长时间的测试可能很脆弱，而且很难跟踪和更新。
+- 使用[自定义步骤和页面对象](https://codecept.io/pageobjects)隐藏与当前测试无关的步骤。
+
+使测试如此简单：
+
+```js
+Scenario('editing a metric', async ({ I, loginAs, metricPage }) => {
+  // login via autoLogin
+  loginAs('admin');
+  // create data with ApiDataFactory
+  const metric = await I.have('metric', { type: 'memory', duration: 'day' })
+  // use page object to open a page
+  metricPage.open(metric.id);
+  I.click('Edit');
+  I.see('Editing Metric');
+  // using a custom step
+  I.selectFromDropdown('duration', 'week');
+  I.click('Save');
+  I.see('Duration: Week', '.summary');
+});
+```
+
+#### 3.定位器
+
+- 如果您不使用多语言网站或不经常更新文本，则可以按文本单击链接或按占位符匹配字段。
+- 如果您不想依赖猜测定位器，请使用`{ css: 'button' }`或手动指定它们`{ xpath: '//button' }`。我们称它们为严格定位器。这些定位器会更快但可读性较差。
+- 如果对具有特殊属性的活动元素有约定就更好了，比如`data-test` or `data-qa。使用`customLocator`插件轻松地将它们添加到测试中。
+- 保持测试的可读性，这将使它们易于维护。
+
+#### 4.页面对象
+
+当项目不断增长并且需要越来越多的测试时，是时候考虑在测试中重用测试代码了。一些常见的操作应该从测试移动到其他文件，以便可以从不同的测试中访问。
+
+这是一个推荐的策略，将内容存储在何处：
+
+- 将站点范围的操作移动到**Actor**文件 ( `custom_steps.js`file) 中。此类操作，例如`login`，使用站点范围的通用控件，如下拉菜单、富文本编辑器、日历。
+- 将基于页面的操作和选择器移动到**Page Object 中**。在该页面上进行的所有活动都可以进入页面对象的方法。如果您测试单页应用程序，一个 PageObject 应该代表您的应用程序的一个屏幕。
+- 当使用站点范围的小部件时，与它们的交互应该放在**Page Fragments 中**。这应该应用于全局导航、模态、小部件。
+- 需要一些低级驱动程序访问的自定义操作应放置在**Helper 中**。例如，数据库连接、复杂的鼠标操作、电子邮件测试、文件系统、服务访问。
+
+但是，建议不要过度设计并保持测试简单。如果此时测试代码不需要重用，则不应将其转换为使用页面对象。
+
+- 使用页面对象存储常用操作
+- 不要为每个页面都创建页面对象！仅适用于跨不同测试和套件共享的页面。
+- 为页面对象使用类，这允许继承。导出该类的实例。
+- 如果页面对象围绕其中包含多个字段的表单，请在其中使用一组灵活的参数：
+
+```js
+class CheckoutForm {
+  
+  fillBillingInformation(data = {}) {
+    // take data in a flexible format
+    // iterate over fields to fill them all
+    for (let key of Object.keys(data)) {
+      I.fillField(key, data[key]); // like this one
+    }
+  }
+
+} 
+module.exports = new CheckoutForm();
+module.exports.CheckoutForm = CheckoutForm; // for inheritance
+```
+
+- 对于在网站（小部件）中重复但不属于任何页面的组件，请使用组件对象。它们与页面对象相同，但只关注一个元素：
+
+```js
+class DropDownComponent {
+  
+  selectFirstItem(locator) {
+    I.click(locator);
+    I.click('#dropdown-items li');
+  }
+
+  selectItemByName(locator, name) {
+    I.click(locator);
+    I.click(locate('li').withText(name), '#dropdown-items');
+  }
+}
+```
+
+- 另一个很好的例子是 datepicker 组件：
+
+```js
+const { I } = inject();
+
+/**
+ * Calendar works
+ */
+class DatePicker {
+
+  selectToday(locator) {
+    I.click(locator);
+    I.click('.currentDate', '.date-picker');
+  }
+  
+  selectInNextMonth(locator, date = '15') {
+    I.click(locator);
+    I.click('show next month', '.date-picker')
+    I.click(date, '.date-picker')
+  }
+  
+}
+
+
+module.exports = new DatePicker;
+module.exports.DatePicker = DatePicker; // for inheritance
+```
+
+#### 5.配置
+
+- 为不同的设置/环境创建多个配置文件：
+  - `codecept.conf.js` - 默认一个
+  - `codecept.ci.conf.js` - for CI
+  - `codecept.windows.conf.js` - 用于 Windows 等
+- 使用`.env`文件和 dotenv 包加载敏感数据
+
+```js
+require('dotenv').config({ path: '.env' });
+```
 
