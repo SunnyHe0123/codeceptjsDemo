@@ -218,22 +218,22 @@ CodeceptJS配置在**codecept.conf.js**文件中设置。
 
 以下是可用选项及其默认值:
 
-| option      | 默认值           | 描述                                                         |
-| ----------- | ---------------- | ------------------------------------------------------------ |
-| tests       | "./*_test.js"    | 模式定位测试。允许输入[glob模式](https://github.com/isaacs/node-glob)，可以是单个文件测试，也可以是一组测试 |
-| grep        |                  | 按名称过滤测试                                               |
-| include     | {}               | 要在DI容器中注册并包含在测试中的actor和page object。         |
-| timeout     | 1000             | 测试默认的timeout时间                                        |
-| output      | "./output"       | 存储失败截图的目录                                           |
-| helpers     | {}               | 启用的helper列表                                             |
-| mocha       | {}               | https://codecept.io/reports/#xml                             |
-| multiple    | {}               | [Multiple Execution](https://codecept.io/parallel#multiple-browsers-execution) |
-| bootstrap   | "./bootstrap.js" |                                                              |
-| teardown    |                  |                                                              |
-| noGlobals   | false            | 禁止注册全局变量，如Actor`, `Helper`, `pause`, `within`, `DataTable |
-| hooks       |                  | 包括插入到执行工作流中的自定义侦听器                         |
-| translation |                  | 区域设置用于打印步骤输出，以及在源代码中使用。               |
-| require     | []               | 在codecept开始之前需要的模块名称数组。https://codecept.io/configuration/#require |
+| option      | 描述                                                         |
+| ----------- | ------------------------------------------------------------ |
+| tests       | 模式定位测试。允许输入[glob模式](https://github.com/isaacs/node-glob)，可以是单个文件测试，也可以是一组测试 |
+| grep        | 按名称过滤测试                                               |
+| include     | 要在DI容器中注册并包含在测试中的actor和page object。         |
+| timeout     | 测试默认的timeout时间                                        |
+| output      | 存储失败截图的目录                                           |
+| helpers     | 启用的helper列表                                             |
+| mocha       | https://codecept.io/reports/#xml                             |
+| multiple    | [Multiple Execution](https://codecept.io/parallel#multiple-browsers-execution) |
+| bootstrap   |                                                              |
+| teardown    |                                                              |
+| noGlobals   | 禁止注册全局变量，如Actor`, `Helper`, `pause`, `within`, `DataTable |
+| hooks       | 包括插入到执行工作流中的自定义侦听器                         |
+| translation | 区域设置用于打印步骤输出，以及在源代码中使用。               |
+| require     | 在codecept开始之前需要的模块名称数组。https://codecept.io/configuration/#require |
 
 #### （2）Puppeteer配置
 
