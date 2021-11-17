@@ -18,7 +18,7 @@
 
 6、[Web和移动端测试:](https://codecept.io/mobile/) 使用Appium或Detox测试原生手机应用。
 
-7、Cucumber-like BDD: 像在CucumberJS中那样自动化业务场景???????
+7、Cucumber-like BDD: 像在CucumberJS中那样自动化业务场景
 
 8、[美观的测试报告](https://codecept.io/plugins/#allure): 集成Allure reporter
 
@@ -132,9 +132,9 @@ Scenario('check Welcome page on site', ({ I }) => {
 });
 ```
 
-测试预计将使用**ECMAScript 7**编写。
+测试使用**ECMAScript 7**编写。
 
-每个测试都在一个`Scenario`函数中描述，`I`对象传递给它。该`I`对象是一个**actor**，一个测试用户的抽象。该`I`是目前启用了代理对象**助手（helper）**
+每个测试都在一个`Scenario`函数中描述，`I`对象传递给它。该`I`对象是一个**actor**，一个测试用户的抽象。该`I`指的是目前启用的**助手（helper）**
 
 2.运行测试
 
@@ -180,7 +180,7 @@ npx codeceptjs run admin/login_test.js
 npx codeceptjs run --grep "slow"
 ```
 
-5.并行运行?
+5.并行运行
 
 从 CodeceptJS 2.3 开始，您可以使用 NodeJS 工作线程并行运行测试。此功能需要 NodeJS >= 11.6。使用`run-workers`带有工人（线程）数量的命令来拆分测试。
 
@@ -189,6 +189,22 @@ npx codeceptjs run-workers 3
 ```
 
 测试按场景拆分，而不是按文件拆分。结果汇总并显示在主流程中。
+
+```shell
+F:\Java\repositories\codeceptjsDemo>npx codeceptjs run-workers 3
+CodeceptJS v3.1.2
+Running tests in 3 workers...
+
+[02]   √ test something in 2095ms
+[01]   √ search codeceptjs in 5957ms
+[03]   √ test github in 8450ms
+[01]   √ test hello in 10ms
+
+  OK  | 4 passed   // 29s
+
+```
+
+
 
 ### 六、配置
 
@@ -1499,28 +1515,261 @@ include: {
 
 ### 七、行为驱动开发
 
-行为驱动开发 (BDD) 是一种流行的软件开发方法。BDD 被认为是 TDD 的扩展，受到[Agile 的](http://agilemanifesto.org/)极大启发做法。选择 BDD 作为开发过程的主要原因是打破业务和技术团队之间的沟通障碍。BDD 鼓励使用自动化测试从一开始就验证项目的所有记录功能。这就是为什么在测试框架（如 CodeceptJS）的上下文中谈论 BDD 很常见的原因。然而，BDD 方法不仅仅是测试——它是所有团队成员在开发过程中使用的通用语言
+行为驱动开发 (BDD) 是一种流行的软件开发方法。BDD 被认为是 TDD 的扩展。
+
+选择 BDD 作为开发过程的主要原因是打破业务和技术团队之间的沟通障碍。
+
+BDD 鼓励使用自动化测试从一开始就验证项目的所有记录功能。然而，BDD 方法不仅仅是测试——它是所有团队成员在开发过程中使用的通用语言
 
 #### 1.什么是行为驱动开发
 
-BDD 是由[Dan North](https://dannorth.net/introducing-bdd/)介绍的. 他是这样描述的：
+BDD将TDD的一般技术和原理与领域驱动设计(DDD)的想法相结合。 
+BDD是一个设计活动，可以根据预期行为逐步构建功能块。BDD的重点是软件开发过程中使用的语言和交互。
+行为驱动的开发人员使用他们的母语与领域驱动设计的语言相结合来描述他们的代码的目的和好处。使用BDD的团队应该能够以用户故事的形式提供大量的“功能文档”，并增加可执行场景或示例。 BDD通常有助于领域专家理解实现而不是暴露代码级别测试。
+它通常以GWT格式定义：GIVEN WHEN＆THEN。
 
->由外向内、拉动式、多利益相关者、多规模、高度自动化、敏捷的方法论。它描述了一个与定义明确的输出交互的循环，从而导致重要的工作、测试软件的交付。
+https://blog.csdn.net/yhc166188/article/details/102881306?utm_source=app&app_version=4.18.0&code=app_1562916241&uLinkId=usr1mkqgl919blen)
 
-BDD 从诞生之日起就有了自己的演变，首先是将单元测试中的“test”替换为“should”，然后转向像 Cucumber 和 Behat 这样的强大工具，这使得用户故事（人类可读的文本）可以作为验收测试。
+#### 2.通用语言
 
-故事 BDD 的想法可以缩小为：
+行为驱动开发的根基是一种“通用语言”。这种通用语言同时被客户和开发者用来定义系统的行为。由于客户
+和开发者使用同一种语言来描述同一个系统， 可以最大程度避免表达不一致带来的问题。
 
-- 用正式文本描述场景中的特征
-- 用例子把抽象的东西具体化
-- 实现场景的每一步进行测试
-- 编写实现该功能的实际代码
+一个产品的每一项功能都应该从一场对话中诞生
 
-**通过以用户故事(User Story)的格式编写每一个特性，并将其自动地作为测试来执行。**
+我们可以试着写这样一个简单的故事:
 
-**BDD 鼓励探索和辩论，以便通过要求以每个人都能理解的方式编写用户故事来正式确定需要实现的需求和功能。**
+```text
+作为一个顾客，我想买几件产品
+我把第一个600美元的产品放进购物车
+然后再买一个1000美元的
+当我去退房的时候
+我应该看到我想买的产品总数是2
+我的订单金额是1600美元
+```
 
-**通过将测试作为用户故事的一部分，BDD允许非技术人员编写(或编辑)验收测试。**
+这个故事突出了称为*合同的*核心概念。我们应该履行这些合同以正确建模软件。但是我们如何验证这些合同是否得到满足？[Cucumber](http://cucumber.io/)为此类故事引入了一种特殊的语言，称为**小黄瓜(Gherkin)**。将故事转换为小黄瓜将如下所示：
 
-https://blog.csdn.net/yhc166188/article/details/102881306?utm_source=app&app_version=4.18.0&code=app_1562916241&uLinkId=usr1mkqgl919blen
+```text
+Feature: 结账流程
+  为了购买产品
+  作为一个顾客
+  我希望能够买几样产品
+
+  Scenario:
+    Given 我的购物车里有600美元的产品
+    And 我有1000美元的产品
+    When 我去办理结账手续
+    Then 我应该看到产品的总数是2
+    And 我的订单金额是1600美元
+```
+
+**CodeceptJS 可以将这个场景作为自动化测试逐步执行**。这个场景中的每一步都需要一个定义它的代码
+
+#### 3.Gherkin(小黄瓜)
+
+通过`gherkin:init`在**已经初始化的项目**上运行命令来为当前项目启用 Gherkin ：
+
+```shell
+npx codeceptjs gherkin:init
+```
+
+它将向`config`中添加gherkin部分,它还将为features 和step definition准备目录。它会为你创建第一个feature 文件。
+
+#### 4.Features（功能）
+
+每当开始编写故事时，其实就是在描述应用程序的特定功能，并使用一组场景和示例来描述此功能。让我们打开一个由`gherkin:init`命令创建的特征文件，它是`feature/basic.feature`
+
+```text
+Feature: Business rules
+  In order to achieve my goals
+  As a persona
+  I want to be able to interact with a system
+
+  Scenario: do something
+    Given I have a defined step
+
+```
+
+应重写此文本以遵循您的业务规则。暂时不要考虑 Web 界面。考虑用户如何与您的系统交互以及他们想要实现什么目标。然后写交互场景。
+
+#### 5.Scenarios（场景）
+
+场景是功能使用的现场示例。在功能文件中，它应该写在*功能*块中。每个场景都应包含其标题：
+
+```text
+Feature: checkout
+  In order to buy product
+  As a customer
+  I need to be able to checkout the selected products
+
+Scenario: order several products
+```
+
+使用 Given-When-Then 方法逐步编写场景。一开始，场景应该用**Given**关键字描述它的上下文：
+
+```text
+Given I have product with $600 price in my cart
+And I have product with $1000 price in my cart
+```
+
+这里我们也使用单词**And**来扩展 Given 而不是在每一行中重复。这就是我们描述初始条件的方式。
+
+接下来，我们执行一些操作。我们使用**When**关键字：
+
+```text
+When I go to checkout process
+```
+
+最后，使用**Then**关键字来验证我们的期望。
+
+这个动作改变了最初的给定状态，并产生了一些结果。让我们检查一下这些结果是否符合我们的实际预期。
+
+```text
+Then I should see that total number of products is 2
+And my order amount is $1600
+```
+
+可以通过执行`gherkin:snippets`命令来定义步骤：
+
+```shell
+npx codeceptjs gherkin:snippets [--path=PATH] [--feature=PATH]
+```
+
+这将为 .feature 文件中的所有未定义步骤生成代码模板
+
+默认情况下，它将扫描配置的 gherkin.features 部分中指定的所有 .feature 文件，并为所有未定义的步骤生成代码模板。如果`--feature`指定了该选项，它将扫描指定的 .feature 文件
+
+默认情况下，存根定义将放置在配置的 `gherkin.steps` 部分中指定的第一个文件中。但是，您也可以使用`--path`指定一个特定文件来放置所有未定义的步骤, 这个文件必须存在并且在配置的 gherkin.steps 数组中。我们的下一步将是定义这些步骤并将特征文件转换为有效的测试
+
+#### 6.Step Definitions(步骤定义)
+
+步骤定义使用 Given/When/Then 函数放置在 JavaScript 文件中，这些函数将字符串从feature 文件映射到函数：
+
+```js
+const { I } = inject();
+// Add in your custom step files
+
+Given('I input codeceptjs', () => {
+  I.amOnPage("https://baidu.com/");
+  I.fillField("wd", "codeceptjs");
+});
+
+
+When('I click baidu', () => {
+  I.click("百度一下");
+});
+
+Then('I should see codeceptjs', () => {
+  I.see("CodeceptJS")
+});
+```
+
+步骤可以是字符串或正则表达式。来自字符串的参数作为函数参数传递。要在字符串中定义参数，我们使用[Cucumber 表达式](http://github.com/cucumber/cucumber-expressions#readme)
+
+```shell
+npx codeceptjs gherkin:steps
+
+
+Gherkin Step Definitions:
+
+  I input codeceptjs (.\step_definitions\steps.js:4:1)
+  I click baidu (.\step_definitions\steps.js:10:1)
+  I should see codeceptjs (.\step_definitions\steps.js:14:1)
+```
+
+#### 7.配置
+
+- gherkin
+  - `features` - 特征文件的路径，或特征文件路径的数组
+  - `steps` - 带有步骤定义的文件数组
+
+```js
+"gherkin": {
+  "features": "./features/*.feature",
+  "steps": [
+    "./step_definitions/steps.js"
+  ]
+}
+```
+
+```js
+"gherkin": {
+  "features": [
+      "./features/*.feature",
+      "./features/api_features/*.feature"
+    ],
+  "steps": [
+    "./step_definitions/steps.js"
+  ]
+}
+```
+
+#### 8.测试与功能
+
+人们普遍认为 BDD 场景就等于测试。但实际上并非如此。并不是每个测试都应该被描述为一个特性。并非每个测试都是为了测试真正的商业价值而编写的。例如，回归测试或负面场景测试不会为业务带来任何价值。业务分析师不关心重现错误 #13 的场景，或者当用户尝试在登录屏幕上输入错误密码时会显示什么错误消息。在功能文件中写入所有测试会导致信息溢出。
+
+在 CodeceptJS 中，您可以将 Gherkin 格式编写的测试与经典的验收测试结合起来。通过这种方式，您可以使用最少的场景集保持功能文件紧凑，并编写常规测试以涵盖所有情况。请注意，功能文件将在测试之前执行。
+
+要仅运行功能使用`--features`选项：
+
+```shell
+npx codeceptjs run --features
+```
+
+要仅运行没有功能的测试，请使用`--tests`选项：
+
+```shell
+npx codeceptjs run --tests
+```
+
+### 八、Reporters
+
+#### 1.Cli
+
+默认情况下，CodeceptJS提供cli报告器控制台输出。测试名称和失败将打印在屏幕上
+
+```shell
+npx codeceptjs run --steps
+```
+
+
+
+```shell
+CodeceptJS v3.1.2
+Using test root "F:\Java\repositories\codeceptjsDemo"
+
+search codeceptjs --
+  In order to search
+  As a customer
+  I need to input ucodeceptjs
+  √ search codeceptjs in 4998ms
+
+  OK  | 1 passed   // 11s
+
+```
+
+#### 2.Dry Run
+
+列出所有测试及其步骤，而无需实际执行它们。以dry-run查看所有可用测试:
+
+```shell
+npx codeceptjs dry-run
+```
+
+Output:
+
+```shell
+Tests from F:\Java\repositories\codeceptjsDemo:
+
+search codeceptjs --
+  [ ] search codeceptjs
+Test -- F:\Java\repositories\codeceptjsDemo\demo\_test.js
+  [ ] test something
+
+  Total: 2 suites | 2 tests
+
+--- DRY MODE: No tests were executed ---
+
+```
 
