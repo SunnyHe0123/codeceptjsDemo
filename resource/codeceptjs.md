@@ -1446,3 +1446,81 @@ module.exports.DatePicker = DatePicker; // for inheritance
 require('dotenv').config({ path: '.env' });
 ```
 
+* 通过将这些配置文件中的类似部分移动到模块中，并将它们放到config目录中
+* 当你需要加载大量的页面对象/组件时，你可以使用components/pageobjects文件来声明它们:
+
+```js
+// inside config/components.js
+module.exports = {
+    DatePicker: "./components/datePicker",
+    Dropdown: "./components/dropdown",
+}
+```
+
+include them like this:
+
+```js
+include: {
+      I: './steps_file',
+      ...require('./config/pages'), // require POs and DOs for module
+      ...require('./config/components'), // require all components
+  },
+```
+
+- 将长助手配置移入`config/plugins.js`并导出它们
+- 将长配置移入`config/plugins.js`并导出它们
+- 内部配置文件导入此设置和环境所需的确切帮助程序或插件
+- 要将数据从配置传递到测试，请使用容器：
+
+```js
+// inside codecept conf file
+bootstrap: () => {  
+  codeceptjs.container.append({
+    testUser: {
+      email: 'test@test.com',
+      password: '123456'
+    }
+  });
+}
+// now `testUser` can be injected into a test
+```
+
+- （或者）如果您有更多的测试数据要传递到测试中，请为它们创建一个单独的文件并以类似于页面对象的方式导入它们：
+
+```js
+include: {
+  // ...
+  testData: './config/testData' 
+
+}
+```
+
+- .env / 不同的配置 / 不同的测试数据允许你获取多种环境的配置
+
+### 七、行为驱动开发
+
+行为驱动开发 (BDD) 是一种流行的软件开发方法。BDD 被认为是 TDD 的扩展，受到[Agile 的](http://agilemanifesto.org/)极大启发做法。选择 BDD 作为开发过程的主要原因是打破业务和技术团队之间的沟通障碍。BDD 鼓励使用自动化测试从一开始就验证项目的所有记录功能。这就是为什么在测试框架（如 CodeceptJS）的上下文中谈论 BDD 很常见的原因。然而，BDD 方法不仅仅是测试——它是所有团队成员在开发过程中使用的通用语言
+
+#### 1.什么是行为驱动开发
+
+BDD 是由[Dan North](https://dannorth.net/introducing-bdd/)介绍的. 他是这样描述的：
+
+>由外向内、拉动式、多利益相关者、多规模、高度自动化、敏捷的方法论。它描述了一个与定义明确的输出交互的循环，从而导致重要的工作、测试软件的交付。
+
+BDD 从诞生之日起就有了自己的演变，首先是将单元测试中的“test”替换为“should”，然后转向像 Cucumber 和 Behat 这样的强大工具，这使得用户故事（人类可读的文本）可以作为验收测试。
+
+故事 BDD 的想法可以缩小为：
+
+- 用正式文本描述场景中的特征
+- 用例子把抽象的东西具体化
+- 实现场景的每一步进行测试
+- 编写实现该功能的实际代码
+
+**通过以用户故事(User Story)的格式编写每一个特性，并将其自动地作为测试来执行。**
+
+**BDD 鼓励探索和辩论，以便通过要求以每个人都能理解的方式编写用户故事来正式确定需要实现的需求和功能。**
+
+**通过将测试作为用户故事的一部分，BDD允许非技术人员编写(或编辑)验收测试。**
+
+https://blog.csdn.net/yhc166188/article/details/102881306?utm_source=app&app_version=4.18.0&code=app_1562916241&uLinkId=usr1mkqgl919blen
+
