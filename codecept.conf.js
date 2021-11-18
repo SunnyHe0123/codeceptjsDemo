@@ -5,10 +5,15 @@ exports.config = {
       url: 'http://localhost',
       show: true,
       windowSize: '1200x900'
+    },
+    MyHelper: {
+      require: "./myhelper_helper.js"
     }
   },
   include: {
-    I: './steps_file.js'
+    I: './steps_file.js',
+    myPageObjectPage: './pages/MyPageObject.js',
+    myFragmentFragment: './fragments/MyFragment.js',
   },
   mocha: {},
   bootstrap: null,

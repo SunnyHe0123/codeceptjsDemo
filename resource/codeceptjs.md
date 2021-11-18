@@ -112,7 +112,7 @@ npx codeceptjs init
 npm run codeceptjs
 ```
 
-![image3](./image3.png)
+
 
 ### 五、入门
 
@@ -136,11 +136,15 @@ Scenario('check Welcome page on site', ({ I }) => {
 
 每个测试都在一个`Scenario`函数中描述，`I`对象传递给它。该`I`对象是一个**actor**，一个测试用户的抽象。该`I`指的是目前启用的**助手（helper）**
 
-2.运行测试
+2.并行运行测试
 
-要启动测试使用的`run`命令，以执行测试[多个浏览器](https://codecept.io/advanced/#multiple-browsers-execution)或[多个线程](https://codecept.io/advanced/#parallel-execution)使用的`run-multiple`命令
+>CodeceptJS有两个并行运行测试的引擎:
+>
+>`run-workers`: 在线程中生成NodeJS Worker。测试按场景划分，场景在组之间混合，每个工作人员从自己的组运行测试。
+>
+>`run-multiple`: 用CodeceptJS生成一个子进程。测试由文件分割，并在codecept.conf.js中配置。
 
-3.详细程度
+3.运行测试
 
 要查看运行测试的分步输出，请添加`--steps`标志：
 
@@ -165,11 +169,22 @@ npx codeceptjs run --verbose
 如果您提供此类文件的相对路径，则可以执行单个测试文件
 
 ```shell
-npx codeceptjs run github_test.js
+npx codeceptjs run slow_test.js
 
 # or
 
-npx codeceptjs run admin/login_test.js
+npx codeceptjs run demo/slow_test.js
+```
+
+```shell
+E:\codeceptjsDemo>npx codeceptjs run demo/slow_test.js
+CodeceptJS v3.1.2
+Using test root "E:\codeceptjsDemo"
+
+Slow Test --
+  √ test slow in 4175ms
+
+  OK  | 1 passed   // 8s
 ```
 
 要按名称过滤测试，请使用`--grep`参数，它将执行名称与正则表达式模式匹配的所有测试。
@@ -178,6 +193,17 @@ npx codeceptjs run admin/login_test.js
 
 ```shell
 npx codeceptjs run --grep "slow"
+```
+
+```shell
+F:\Java\repositories\codeceptjsDemo>npx codeceptjs run --grep "slow"
+CodeceptJS v3.1.2
+Using test root "E:\codeceptjsDemo"
+
+Slow Test --
+  √ test slow in 5722ms
+
+  OK  | 1 passed   // 14s
 ```
 
 5.并行运行
@@ -220,19 +246,19 @@ CodeceptJS配置在**codecept.conf.js**文件中设置。
 
 | option      | 描述                                                         |
 | ----------- | ------------------------------------------------------------ |
-| tests       | 模式定位测试。允许输入[glob模式](https://github.com/isaacs/node-glob)，可以是单个文件测试，也可以是一组测试 |
+| tests       | `"./*_test.js"`, 模式定位测试。允许输入[glob模式](https://github.com/isaacs/node-glob)，可以是用于定位测试的模式，也可以是用于定位测试/测试文件名的模式数组 |
 | grep        | 按名称过滤测试                                               |
 | include     | 要在DI容器中注册并包含在测试中的actor和page object。         |
 | timeout     | 测试默认的timeout时间                                        |
-| output      | 存储失败截图的目录                                           |
+| output      | "./output", 存储失败截图的目录等等                           |
 | helpers     | 启用的helper列表                                             |
-| mocha       | https://codecept.io/reports/#xml                             |
-| multiple    | [Multiple Execution](https://codecept.io/parallel#multiple-browsers-execution) |
-| bootstrap   |                                                              |
-| teardown    |                                                              |
+| mocha       | https://codecept.io/reports/#xml, reporters可以在这里配置    |
+| multiple    | [Multiple Execution ](https://codecept.io/parallel#multiple-browsers-execution) |
+| bootstrap   | "./bootstrap.js", 在运行测试之前运行代码的选项               |
+| teardown    | 使用run-multiple模式时，在运行所有测试套件之后运行代码的选项 |
 | noGlobals   | 禁止注册全局变量，如Actor`, `Helper`, `pause`, `within`, `DataTable |
 | hooks       | 包括插入到执行工作流中的自定义侦听器                         |
-| translation | 区域设置用于打印步骤输出，以及在源代码中使用。               |
+| translation | 测试输出和编写测试的方式可以本地化                           |
 | require     | 在codecept开始之前需要的模块名称数组。https://codecept.io/configuration/#require |
 
 #### （2）Puppeteer配置
@@ -260,7 +286,7 @@ Extends Helper
 | windowSize            | 默认的窗口大小。默认设置尺寸为640x480                        |
 | userAgent             | user-agent string.                                           |
 | manualStart           | 不要在测试前启动浏览器，在helper中使用this.helpers["Puppeteer"]. _startbrowser()手动启动浏览器。 |
-| browser               | 可以在使用[puppeteer-firefox](https://codecept.io/helpers/Puppeteer-firefox)时更改为firefox(打开新窗口)。 |
+| browser               | 可以在使用[puppeteer-firefox](https://codecept.io/helpers/Puppeteer-firefox)时更改为firefox。 |
 | chrome                | 传递额外的[puppeteer运行选项](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#puppeteerlaunchoptions) |
 
 
@@ -282,7 +308,7 @@ exports.config = {
 同一个项目可以有多个配置文件，在这种情况下，您可以指定一个`-c`在运行时使用的配置文件。
 
 ```shell
-npx codeceptjs run -c codecept.ci.conf.js
+npx codeceptjs run -c codecept.conf.js
 ```
 
 调整 WebDriver、Puppeteer 等助手的配置可能很困难，因为它需要对这些技术的工作原理有很好的了解。使用[`@codeceptjs/configure` ](https://github.com/codeceptjs/configure)带有常见配置配方的包。
@@ -332,9 +358,7 @@ Interactive shell started
  I.
 ```
 
-输入不同的动作来尝试它们，将成功的动作复制并粘贴到测试文件中。
-
-按`ENTER`恢复测试执行。
+输入不同的动作来尝试它们，将成功的动作复制并粘贴到测试文件中。按`ENTER`恢复测试执行。
 
 要**逐步调试测试，请**按 Enter，将执行下一步并再次显示交互式 shell。
 
@@ -417,7 +441,7 @@ Scenario('Really complex', { retries: 2 },({ I }) => {});
 
 此场景将在失败时重新启动两次。与重试步骤不同，**`when`场景级别不支持重试条件**
 
-#### 4.重试Feature？？？？？？？？？？？？
+#### 4.重试Feature
 
 要为文件中的所有场景设置此选项，请添加`retry`到Feature：
 
@@ -457,7 +481,7 @@ Scenario('test title', ({ I }) => {
 
 >注意：
 >
->`BeforeSuite`并且`AfterSuite`可以访问该`I`对象，但`BeforeSuite/AfterSuite`不能访问浏览器，因为此时它没有运行。您可以使用它们来执行将设置您的环境的处理程序。`BeforeSuite/AfterSuite`仅适用于它在其中声明的文件（因此您可以为文件声明不同的设置）
+>`BeforeSuite`和`AfterSuite`可以访问该`I`对象，但`BeforeSuite/AfterSuite`不能访问浏览器，因为此时它没有运行。您可以使用它们来执行将设置您的环境的处理程序。`BeforeSuite/AfterSuite`仅适用于在其中声明的文件（因此您可以为文件声明不同的设置）
 
 ```javascript
 BeforeSuite(({ I }) => {
@@ -620,6 +644,19 @@ I.fillField('Description', val);
 * `xFeature` - 跳过当前套件 **从 2.6.6 开始**
 * `Feature.skip` - 跳过当前套件 **从 2.6.6 开始**
 
+```shell
+E:\codeceptjsDemo>npx codeceptjs run demo/login_test.js
+CodeceptJS v3.1.2
+Using test root "E:\codeceptjsDemo"
+
+Test Login --
+  S login github
+
+  OK  | 0 passed, 1 skipped   // 3ms
+```
+
+
+
 ### 十五、Todo Test
 
 可以在计划编写测试时使用`Scenario.todo`。
@@ -644,6 +681,19 @@ Scenario.todo('Test',  I => {
 
 ```js
 Scenario.todo('Test');
+```
+
+```shell
+E:\codeceptjsDemo>npx codeceptjs run demo/login_test.js
+CodeceptJS v3.1.2
+Using test root "E:\codeceptjsDemo"
+
+Test Login --
+  S login github
+  S Test
+
+  OK  | 0 passed, 2 skipped   // 4ms
+
 ```
 
 ## CodeceptUI
@@ -991,7 +1041,7 @@ constructor(config) {
 
 #### 5.钩子函数
 
-帮助程序可能包含多个可用于处理测试事件的钩子。为它们实现相应的方法。
+helper包含多个可用于处理测试事件的钩子。为它们实现相应的方法。
 
 * `_init` - 在所有测试之前
 * `_finishTest` - 完成所有测试
@@ -1024,11 +1074,31 @@ CodeceptJS 提供了灵活的元素定位策略：
 
 - [CSS 和 XPath 定位器](https://codecept.io/locators/#css-and-xpath)
 - [语义定位器](https://codecept.io/locators/#semantic-locators)：按链接文本、按按钮文本、按字段名称等。
-- [定位器生成器](https://codecept.io/locators/#locator-builder)
+- [**定位器生成器**](https://codecept.io/locators/#locator-builder)
 - [ID 定位器](https://codecept.io/locators/#id-locators)：通过 CSS id 或通过可访问性 id
 - [自定义定位器策略](https://codecept.io/locators/#custom-locators)：通过数据属性或您喜欢的任何方式。
 - [Shadow DOM](https://codecept.io/shadow) : 访问 shadow dom 元素
 - [React](https://codecept.io/react)：通过组件名称和道具访问 React 元素
+
+Locator Builder
+
+CodeceptJS提供了一个流式的build来在JavaScript中组合自定义定位器。使用locate开始。
+
+要定位文本为'Hello'的标签内元素，请使用:
+
+```js
+locate('a')
+  .withAttr({ href: '#' })
+  .inside(locate('label').withText('Hello'));
+```
+
+这将产生以下XPath:
+
+```js
+.//a[@href = '#'][ancestor::label[contains(., 'Hello')]]
+```
+
+Locator builder接受XPath和CSS作为参数，但将它们转换为功能更丰富的XPath格式。有时提供的locate可能会很长，所以建议通过提供生成的XPath的简要描述来简化输出:
 
 ### 四、页面对象（Page Objects）
 
@@ -1373,7 +1443,7 @@ Scenario('editing a metric', async ({ I, loginAs, metricPage }) => {
 
 #### 4.页面对象
 
-当项目不断增长并且需要越来越多的测试时，是时候考虑在测试中重用测试代码了。一些常见的操作应该从测试移动到其他文件，以便可以从不同的测试中访问。
+当项目不断增长并且需要越来越多的测试时，考虑在测试中重用测试代码。一些常见的操作应该从测试移动到其他文件，以便可以从不同的测试中访问。
 
 这是一个推荐的策略，将内容存储在何处：
 
