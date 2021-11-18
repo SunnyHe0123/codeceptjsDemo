@@ -15,7 +15,7 @@ Feature('Test Login');
 
 Scenario("login github", ({I, myPageObjectPage, myFragmentFragment}) => {
     I.amOnPage("https://github.com/login");
-    myPageObjectPage.sendForm("sunnyhe0123@outlook.com", "xiang19950416li");
+    myPageObjectPage.sendForm("useroutlook.com", "123456");
     I.see("GitHub");
     myPageObjectPage.testPageObject();
     myFragmentFragment.testFragment();

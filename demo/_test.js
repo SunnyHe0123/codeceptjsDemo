@@ -7,12 +7,12 @@ Scenario('test something', ({ I }) => {
     I.test();
 });
 
-Scenario('test github', ({ I }) => {
-    I.amOnPage('https://www.github.com');
+Scenario.skip('test github', ({ I }) => {
+    // I.amOnPage('https://www.github.com');
     I.test();
 });
 
-Scenario('test hello', ({ I }) => {
+Scenario.skip('test hello', ({ I }) => {
     I.say("hello");
     I.test();
 });

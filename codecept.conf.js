@@ -33,6 +33,10 @@ exports.config = {
     },
     tryTo: {
       enabled: true
+    },
+    allure: {
+      enabled: true,
+      output_dir: "./allure-results"
     }
   },
   tests: 'demo/*_test.js',

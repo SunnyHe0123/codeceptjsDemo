@@ -1793,6 +1793,66 @@ npx codeceptjs run --features
 npx codeceptjs run --tests
 ```
 
+#### 9.高级Gherkin
+
+##### 1）Background
+
+如果一组场景具有相同的初始步骤，那么对于仪表板，我们需要始终以管理员身份登录。我们可以使用后台部分来做必要的准备工作，而不是在不同场景中重复相同的步骤。
+
+```test
+Feature: Dashboard
+  以便查看当前业务状况
+  作为用户
+  我需要能够在仪表盘上看到报告
+
+  Background:
+    Given 我以管理员身份登录
+    And 我打开了dashboard 页面
+```
+
+Background步骤的定义方法与场景中相同
+
+##### 2）Tables
+
+当您将重复数据表示为表时，场景可以变得更具描述性。与其写几个步骤“我的购物车中有产品:num1 $ price”，我们可以在一个步骤中包含多个值。
+
+```text
+Given I have products in my cart
+    | name         | category    | price  |
+    | Harry Potter | Books       | 5      |
+    | iPhone 5     | Smartphones | 1200   |
+    | Nuclear Bomb | Weapons     | 100000 |
+```
+
+表是将数组传递到测试场景的推荐方法。在步骤定义中，数据存储在作为**DataTable** JavaScript对象传递的参数中。你可以像这样迭代它:
+
+```js
+Given('I have products in my cart', (table) => { // eslint-disable-line
+  for (const id in table.rows) {
+    if (id < 1) {
+      continue; // skip a header of a table
+    }
+
+    // go by row cells
+    const cells = table.rows[id].cells;
+
+    // take values
+    const name = cells[0].value;
+    const category = cells[1].value;
+    const price = cells[2].value;
+    // ...
+  }
+});
+```
+
+你也可以使用parse()方法来获取一个对象，该对象允许你获得一个简单的由列或行解析的表的版本，包括头(或不):
+
+- `raw()` - 以2-D数组的形式返回表
+- `rows()` - 以2-D数组的形式返回表，不包含第一行
+- `hashes()` - 返回一个对象数组，其中每一行都被转换为一个对象(列标头是key)
+- `rowsHash()` - 返回一个对象，其中每一行对应一个条目(第一列是键，第二列是值)
+- `transpose()` - 翻转数据，什么也不返回。使用上面的方法来处理翻转后的表。
+
 ### 八、Reporters
 
 #### 1.Cli
@@ -1841,5 +1901,41 @@ Test -- F:\Java\repositories\codeceptjsDemo\demo\_test.js
 
 --- DRY MODE: No tests were executed ---
 
+```
+
+#### 3.Allure
+
+安装Allure
+
+```shell
+npm install -g allure-commandline --save-dev
+```
+
+添加到config文件
+
+```js
+plugins: {
+    allure: {
+        enable: true
+    }
+}
+```
+
+运行带有Allure插件的测试:
+
+```shell
+npx codeceptjs run --plugins allure
+```
+
+默认情况下，Allure报告保存到输出目录。启动Allure服务器，并看到上面的截图报告:
+
+```shell
+allure serve output
+```
+
+还可以为`dry-run`命令生成Allure报告。因此，您可以在没有实际执行测试的情况下获得第一个报告。在`dry-run`选项中启用allure插件，并通过`--debug`选项在屏幕上打印所有测试。
+
+```shell
+npx codeceptjs dry-run --debug -p allure
 ```
 
